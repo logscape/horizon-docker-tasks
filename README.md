@@ -42,3 +42,25 @@ An Enterprise-Level Container Orchestration Platform that gives you
 
 
 
+# Docker Task Wrapper 
+
+ vscape-task-docker  KVSTORE 
+	e.g etcd://url 
+
+ vscape-task-docker token start container cmd 
+	register container with {
+		,container ID 
+		,resturl:"http://localhost/TOKEN/ ..." 
+	}
+
+ vscape-task-docker token start CONTAINERID
+ vscape-task-docker token stats CONTAINERID 
+	return {
+		
+	}
+ vscape-task-docker token stop  CONTAINERID 
+ 
+
+
+## Setup 
+ * pip install docker py F
