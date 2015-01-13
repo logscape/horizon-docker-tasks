@@ -2,10 +2,10 @@
 
 An Enterprise-Level Container Orchestration Platform that gives you  
 
-	1 Resource Allocation by tags (properties) - AKA as the resourceSelection 
-	2 Querying executing/tasks resources by tags 
-	3 Control of your Service/Task life cycle - start,stop services and tasks 
-er
+	1 Control of your Service/Task life cycle - start,stop services and tasks 
+	2 Resource Allocation by tags (properties) - AKA as the resourceSelection 
+	3 Querying executing/tasks resources by tags 
+	4 Monitoring of your container instances 
 
 
 # MVP Requirements 
@@ -36,7 +36,9 @@ er
 
 ## Monitoring 
 
- This will provide health of a Logscape Docker Task. 
+ This will provide health of a Logscape Docker Task
+	* Resource Utilisation
+	* Lifecycle States  
 
 
 
