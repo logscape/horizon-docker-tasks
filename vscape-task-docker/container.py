@@ -4,6 +4,7 @@ from docker import Client
 from smartendpoint import RouteActionHandler,RouteManager,SmartEndPoint
 import unittest
 import psutil
+from threading import Thread
 
 
 class DockerUniqueNamer(object):
@@ -38,6 +39,7 @@ class Executor(object):
         self._serviceId = serviceId
         self._running = []
         self._stopped = []
+        self._server_thread = None
         self.STATUS_CHECK_MS=5
         self.start_rest_api(33333)
         pass
@@ -73,20 +75,39 @@ class Executor(object):
         print "Exiting ... "
 
     def action_default(self,data=None):
-        self._tags = tags
-        self._serviceId = serviceId
-        self._running = []
-        self._stopped = []
         data = {"tags":self._tags, "serviceId":self._serviceId,"running":self._running}
+        return data
 
+    def action_running(self,data=None):
+        return self._running
+
+    def action_stats(self,data=None):
+        stats={}
+        """for task_id in self._running:
+            for process_info in self._client.top(task_id)["Processes"][0]:
+                pid=process_info[1]
+                p = psutil.Process(pid)
+
+            metrics = {}
+            metrics
+            stats[task_id] = {}
+
+            stats.append()"""
+        return self._client.top(task_id)["Processes"]
 
     def start_rest_api(self,port):
         route_manager=RouteManager()
         route_manager.addRoute("/",self.action_default)
+        route_manager.addRoute("/running",self.action_running)
+        route_manager.addRoute("/stats",self.action_stats)
 
         ip="127.0.0.1"
         port=33333
         httpd = SmartEndPoint((ip,port),RouteActionHandler,route_manager)
+        print "[SmartEndPoint] Starting ... %s" % port
+        self._server_thread=Thread(target=httpd.serve_forever,args=[])
+        #httpd.serve_forever()
+        self._server_thread.start()
         pass
 
 
@@ -112,7 +133,7 @@ class DockerTask(Task):
             container -  The container which executes the argument
         """
         self._tags = ["service","task"]
-        print "Creating Client"
+        #print "Creating Client"
         self._client =  Client(base_url='unix://var/run/docker.sock')
         self._task_id = DockerUniqueNamer.get(self._tags)
         self._cmd=cmd
@@ -126,7 +147,7 @@ class DockerTask(Task):
 
             throws - API error
         """
-        print "Executing Starting %s with %s "	 % (self._task_id,self._cmd)
+        #print "Executing Starting %s with %s "	 % (self._task_id,self._cmd)
 
         #self._client.create_container("ubuntu:10.04",self._cmd,name=self._task_id)
         c_info = self._client.create_container(self._container,self._cmd,name=self._task_id)
@@ -134,7 +155,7 @@ class DockerTask(Task):
         self._client.start(self._task_id)
 
     def stop(self):
-        print "[stop] Stopping %s " % self._task_id
+        #print "[stop] Stopping %s " % self._task_id
         self._client.stop(self._task_id)
 
     def getStats(self):
