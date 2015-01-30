@@ -14,7 +14,7 @@ except:
     params = None
 
 
-client = Client(ip,port)
+
 
 class VScapeStatus(object):
     def __init__(self,client):
@@ -71,9 +71,9 @@ def list_tasks(params):
     tasks = vs.get_tasks(service_name)
     print tasks
 
-def help():
-    pass
-vs = VScapeStatus(client)
+def help(params):
+    global command_router
+    print command_router.keys()
 
 command_router = {
     "list-services":list_services
@@ -82,7 +82,8 @@ command_router = {
     ,"service-info":service_info
     ,"help":help
 }
-
+client = Client(ip,port)
+vs = VScapeStatus(client)
 action = command_router.get(cmd)
 action(params)
 
