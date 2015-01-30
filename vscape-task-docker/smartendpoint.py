@@ -4,16 +4,10 @@ import SocketServer
 import sys 
 import unittest 
 import simplejson as json
-#handler=SimpleHTTPServer.SimpleHTTPRequestHandler
 
 
 """
-	curl -X GET http://127.0.0.1:9999/api/v1/
-	
-	tasks -  ["name1","name2","name3" ... ]  
-	stats - [ {"pid": ... ,
-	]
-	
+	SmartEndPoint exposes a task and service status through a rest api 
 """
 class RouteManager(object):
 	def __init__(self):
@@ -82,8 +76,8 @@ class SmartEndPoint(HTTPServer):
 	def finish_request(self,request,client_address):
 		self.RequestHandlerClass(request, client_address, self,self._route_manager)
 
-	def shutdown(self):
-		self.socket.close() 
+	#def shutdown(self):
+	#	self.socket.close()
 
 #def action_default(data):
 #	return {"version":"v1.0","application":"SmartEndPoint"}
