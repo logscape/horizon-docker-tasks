@@ -114,14 +114,17 @@ class Executor(object):
             if taskId not in containers:
                 print "schedule [%s] to reap"
                 reap.append(taskId)
-        for taskId in reap:
-            print "reaping [%s]" % taskId
+        for task_id in reap:
+            print "reaping [%s]" % task_id
             #self._running.remove(taskId)
-            self._running.pop(taskId)
+            self._running.pop(task_id)
+            self._registry.del_task(self._service_name,task_id)
+
 
     def stop(self,task_id):
         if task_id in self._running.keys():
             self._client.stop(task_id)
+            self._registry.del_task(self._service_name,task_id)
         else:
             raise RuntimeError("Task '%s' is not running in %s " % (task_id,self._running.keys()))
 
@@ -139,7 +142,14 @@ class Executor(object):
         return data
 
     def action_running(self,data=None):
-        return self._running
+        return {"running":self._running}
+
+    def action_metrics(self,data=None):
+        task_metrics = []
+        for task_id in self._running:
+            metrics = self._client.top(task_id)["Processes"]
+            task_metrics.append({"task_name":task_id,"metrics":metrics})
+        return {"service_name":self._service_name , "tasks":task_metrics  }
 
     def action_stats(self,data=None):
         stats={}
@@ -155,11 +165,25 @@ class Executor(object):
             stats.append()"""
         return self._client.top(task_id)["Processes"]
 
+    def action_tasks(self,data=None):
+        return {"tasks":self._running}
+
+    def action_status(self,data=None):
+        return {"status":"good"}
+
+    def action_info(self,data=None):
+        return {"info":self._service_info}
+
     def start_rest_api(self,port):
         route_manager=RouteManager()
         route_manager.addRoute("/",self.action_default)
         route_manager.addRoute("/running",self.action_running)
         route_manager.addRoute("/stats",self.action_stats)
+        route_manager.addRoute("/metrics",self.action_metrics)
+        route_manager.addRoute("/status",self.action_status)
+        route_manager.addRoute("/tasks",self.action_tasks)
+        route_manager.addRoute("/info",self.action_info)
+
         #route_manager.addRoute("/info",self.action_info)
 
         ip="127.0.0.1"
@@ -172,6 +196,7 @@ class Executor(object):
         pass
 
     def shutdown(self):
+        self._registry.del_service(self._service_name)
         self.httpd.shutdown()
         #self._server_thread,stop()
 
