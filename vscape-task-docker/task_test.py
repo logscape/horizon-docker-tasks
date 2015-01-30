@@ -56,3 +56,5 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(unittest.makeSuite(TestDockerTask))
     return test_suite
+
+
