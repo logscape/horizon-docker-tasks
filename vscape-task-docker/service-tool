@@ -1,0 +1,2 @@
+#!/bin/bash
+python service-tool.py 10.28.1.159 5001 $* 
