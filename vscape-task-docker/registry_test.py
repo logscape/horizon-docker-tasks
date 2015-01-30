@@ -42,6 +42,33 @@ class TestEtcdRegistry(unittest.TestCase):
         print "[test/end] test_add_service"
         self.assertTrue(service_name in services)
 
+    def  test_del_service(self):
+        print "[test/start] test_del_service"
+        registry = self._registry
+        service_name_1 = "service-000"
+        service_name_2 = "service-001"
+        registry.add_service(service_name_1,{})
+        registry.add_service(service_name_2,{})
+        registry.del_service(service_name_1)
+        services = None
+        r = self._client.read("/vscape/services/")
+        services = [ l.key.split("/")[-1] for l in r.leaves]
+        print "[test/end] test_add_service"
+        self.assertTrue(service_name_1 not in services)
+
+
+    def test_del_task(self):
+        registry = self._registry
+        service_name = "service-000"
+        task_name_1 = "task-000"
+        task_name_2 = "task-001"
+        registry.add_service(service_name,{})
+        registry.add_task(service_name,task_name_1,{})
+        registry.add_task(service_name,task_name_2,{})
+        registry.del_task(service_name,task_name_1)
+        tasks = [l.key.split("/")[-1]  for l in self._client.read("/vscape/services/%s" % (service_name)).leaves ]
+
+        self.assertTrue( task_name_1 not in tasks  )
 
     def test_add_two_services(self):
 
