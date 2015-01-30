@@ -34,6 +34,9 @@ class Registry(object):
     def add_task(self,service_name,task_name,info):
         path ="%s/%s/%s" % (Registry.SERVICE_DIRECTORY,service_name,task_name)
         self.write(path,info)
+    def del_task(self,service_name,task_name):
+        path ="%s/%s/%s" % (Registry.SERVICE_DIRECTORY,service_name,task_name)
+        self._client.delete(path)
 
     def get_task_info(self,service_name,task_name):
         task_file ="%s/%s/%s" % (Registry.SERVICE_DIRECTORY,service_name,task_name)
@@ -44,6 +47,11 @@ class Registry(object):
     def add_service(self,name,value):
         service_directory ="%s/%s/" % (Registry.SERVICE_DIRECTORY,name)
         self.create_directory(service_directory,value)
+
+    def del_service(self,name):
+        service_directory ="%s/%s/" % (Registry.SERVICE_DIRECTORY,name)
+        self._client.delete(service_directory,dir=True,recursive=True)
+
 
     def key_exists(self,k):
         client = self._client
