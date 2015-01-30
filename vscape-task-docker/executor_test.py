@@ -29,17 +29,14 @@ class TestDockerExecutorUsingEtcd(unittest.TestCase):
         leaves = [l   for l in executor._registry._client.read("/vscape/services/").leaves]
         self.assertTrue(len(leaves) > 0)
 
-    def testRegisteredServiceInfo(self):
-        executor = self.executor
-        executor.register(self.registryAddress)
-        values = [json.loads(l.value.replace("'","\""))   for l in executor._registry._client.read("/vscape/services/").leaves]
-        self.assertTrue(len(values[0].keys()) > 0 )
+
 
 
 class TestDockerExecutor(unittest.TestCase):
 
     def setUp(self):
         self.executor = Executor("serviceId&id=0",["service=executor","host=127.0.0.1"])
+        self.executor.register("etcd://10.28.1.159:5001")
         self.container = "ubuntu:10.04"
         self.cmd = "sleep 10s"
 
@@ -47,15 +44,11 @@ class TestDockerExecutor(unittest.TestCase):
         self.executor.shutdown()
 
 
-    def testRegisterWithNothing(self):
-        executor = self.executor
-        executor.register(None)
-        self.assertTrue(self._registry == None)
 
 
     def testGetLastTaskId_ShouldPass(self):
         executor = self.executor
-        executor.runTask(container="ubuntu:10.04",cmd="sleep 5m")
+        executor.runTask(container="ubuntu:10.04",cmd="sleep 30s")
         taskId = executor.last_task_id
         self.assertTrue(taskId > -1)
 
@@ -66,19 +59,29 @@ class TestDockerExecutor(unittest.TestCase):
 
     def testRunTask(self):
         executor = self.executor
-        executor.runTask(container="ubuntu:10.04",cmd="sleep 5m")
+        executor.runTask(container="ubuntu:10.04",cmd="sleep 30s")
         taskId = executor.last_task_id
         running_tasks = [c["Names"][0][1:] for c in executor._client.containers()]
         self.assertTrue( taskId in running_tasks)
 
     def testStop(self):
         executor = self.executor
-        executor.runTask(container="ubuntu:10.04",cmd="sleep 5m")
+        executor.runTask(container="ubuntu:10.04",cmd="sleep 30s")
         task_id = executor.last_task_id
         executor.stop(task_id)
         running_tasks = [c["Names"][0][1:] for c in executor._client.containers()]
         self.assertTrue( taskId  not in running_tasks)
 
+    def test_stop_check_registry(self):
+        executor = self.executor
+        executor.runTask(container="ubuntu:10.04",cmd="sleep 30s")
+        task_id = executor.last_task_id
+        executor.stop(task_id)
+        client = executor._registry._client
+        leaves = client.read("/vscape/services/%s" % (executor._service_name)).leaves
+        tasks = [l.key.split("/")[-1]  for l in leaves ]
+        print tasks
+        self.assertTrue( task_id  not in tasks, "tasks: %s is not in %s" % (task_id,str(tasks)))
     #def testStopAll(self):
     #    executor = self.executor
     #    executor.runTask(container="ubuntu:10.04",cmd="sleep 5m")
