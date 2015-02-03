@@ -2,12 +2,14 @@ from time import sleep
 from random import randint
 from docker import Client
 from smartendpoint import RouteActionHandler,RouteManager,SmartEndPoint
+
 import unittest
 import psutil
 import etcd
 from registry import  Registry
 
-from threading import Thread
+
+from threading import Thread,Timer
 
 
 class DockerUniqueNamer(object):
@@ -43,6 +45,7 @@ class UniqueEndpoint(object):
 
 
 
+
 class Executor(object):
     STATUS_CHECK_SECS=20
     def __init__(self,serviceId,tags=None):
@@ -64,8 +67,42 @@ class Executor(object):
         self._last_task_id = -1
         self.httpd = None
         self.start_rest_api(self._restapi_port)
+        self.start_publish_thread()
         pass
 
+    def start_publish_thread(self):
+        t = Timer(5,self.publish)
+        t.daemon = True
+        t.start()
+
+    def publish_task_data(self,file_name,task_id,data):
+        """route_manager.addRoute("/",self.action_default)
+        route_manager.addRoute("/running",self.action_running)
+        route_manager.addRoute("/stats",self.action_stats)
+        route_manager.addRoute("/metrics",self.action_metrics)
+        route_manager.addRoute("/status",self.action_status)
+        route_manager.addRoute("/tasks",self.action_tasks)
+        route_manager.addRoute("/info",self.action_info)"""
+        task_path = "%s/%s/%s/%s" % (self._registry.SERVICE_DIRECTORY,self._service_name,task_id,file_name)
+        print "[writing] %s" % task_path
+        self._registry._client.write(task_path,data)
+
+    def publish(self):
+
+        for task_id in self._running:
+            print "[publish:stats] %s " % task_id
+            data = self.action_running(None)
+            self.publish_task_data("running",task_id,data)
+            data = self.action_stats(None)
+            self.publish_task_data("stats",task_id,data)
+            data = self.action_metrics(None)
+            self.publish_task_data("metrics",task_id,data)
+            data = self.action_status(None)
+            self.publish_task_data("status",task_id,data)
+            data = self.action_tasks(None)
+            self.publish_task_data("tasks",task_id,data)
+            data = self.action_info(None)
+            self.publish_task_data("info",task_id,data)
 
     def register(self,full_address):
         address = full_address.split("//")[1]
@@ -77,6 +114,7 @@ class Executor(object):
         print "[Executor::register] %s%s " % (self._service_name,"/config")
 
     def runTask(self,container,cmd):
+        print "[RUNTASK](%s,%s) " % (container,cmd)
         task=DockerTask(container=container,cmd=cmd)
         task.run()
         task_info = {"name":task._task_id , "cmd":cmd , "container":container}
@@ -135,7 +173,9 @@ class Executor(object):
             self.clean_dead_tasks()
         print "Exiting ... "
 
-
+    def action_shutdown(self,data=None):
+        data = {"message":"shutting down"}
+        return data
 
     def action_default(self,data=None):
         data = {"tags":self._tags, "serviceId":self._serviceId,"running":self._running.keys()}
@@ -153,17 +193,21 @@ class Executor(object):
 
     def action_stats(self,data=None):
         stats={}
-        """for task_id in self._running:
-            for process_info in self._client.top(task_id)["Processes"][0]:
-                pid=process_info[1]
+        for task_id in self._running:
+
+            for process_info in self._client.top(task_id)["Processes"]:
+                pid=int(process_info[1])
+                print process_info
                 p = psutil.Process(pid)
 
             metrics = {}
             metrics
             stats[task_id] = {}
 
-            stats.append()"""
-        return self._client.top(task_id)["Processes"]
+            #stats.append()
+        print stats
+        return stats
+
 
     def action_tasks(self,data=None):
         return {"tasks":self._running}
@@ -183,8 +227,8 @@ class Executor(object):
         route_manager.addRoute("/status",self.action_status)
         route_manager.addRoute("/tasks",self.action_tasks)
         route_manager.addRoute("/info",self.action_info)
+        route_manager.addRoute("/shutdown",self.action_shutdown)
 
-        #route_manager.addRoute("/info",self.action_info)
 
         ip="127.0.0.1"
 
