@@ -32,14 +32,14 @@ class Registry(object):
             raise EtcdException(errorMessage)
 
     def add_task(self,service_name,task_name,info):
-        path ="%s/%s/%s" % (Registry.SERVICE_DIRECTORY,service_name,task_name)
+        path ="%s/%s/%s/info" % (Registry.SERVICE_DIRECTORY,service_name,task_name)
         self.write(path,info)
     def del_task(self,service_name,task_name):
         path ="%s/%s/%s" % (Registry.SERVICE_DIRECTORY,service_name,task_name)
-        self._client.delete(path)
+        self._client.delete(path,dir=True,recursive=True)
 
     def get_task_info(self,service_name,task_name):
-        task_file ="%s/%s/%s" % (Registry.SERVICE_DIRECTORY,service_name,task_name)
+        task_file ="%s/%s/%s/info" % (Registry.SERVICE_DIRECTORY,service_name,task_name)
         result=self.read(task_file)
         result=result.replace("\'","\"")
         return json.loads(result)

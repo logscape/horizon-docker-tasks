@@ -90,7 +90,7 @@ class TestEtcdRegistry(unittest.TestCase):
         task_name = "task-000"
         registry.add_service(service_name,{})
         registry.add_task(service_name,task_name,{})
-        result = self._client.read("/vscape/services/%s/%s" % (service_name,task_name))
+        result = self._client.read("/vscape/services/%s/%s/info" % (service_name,task_name))
         self.assertTrue( result.value != None )
 
     def test_get_taskinfo(self):
@@ -102,7 +102,7 @@ class TestEtcdRegistry(unittest.TestCase):
         registry.add_task(service_name,task_name,task_info)
 
 
-        result = self._client.read("/vscape/services/%s/%s" % (service_name,task_name))
+        result = self._client.read("/vscape/services/%s/%s/info" % (service_name,task_name))
         actual = json.loads(result.value.replace("'","\""))
         expected = registry.get_task_info(service_name,task_name)
         self.assertEquals(expected,actual)
@@ -113,7 +113,7 @@ class TestEtcdRegistry(unittest.TestCase):
         task_name = "task-000"
         task_info = {"name":task_name, "rest_endpoint":8000 }
         registry.add_task(service_name,task_name,task_info)
-        result = self._client.read("/vscape/services/%s/%s" % (service_name,task_name))
+        result = self._client.read("/vscape/services/%s/%s/info" % (service_name,task_name))
         actual = json.loads(result.value.replace("'","\""))
         expected = registry.get_task_info(service_name,task_name)
         self.assertEquals(task_info["rest_endpoint"],actual["rest_endpoint"])
