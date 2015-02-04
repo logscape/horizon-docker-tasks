@@ -34,5 +34,3 @@ try:
 except Exception,e:
     print "Something bad happened : %s " % str(e)
     executor.shutdown()
-
-
