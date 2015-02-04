@@ -84,13 +84,11 @@ class Executor(object):
         route_manager.addRoute("/tasks",self.action_tasks)
         route_manager.addRoute("/info",self.action_info)"""
         task_path = "%s/%s/%s/%s" % (self._registry.SERVICE_DIRECTORY,self._service_name,task_id,file_name)
-        print "[writing] %s" % task_path
         self._registry._client.write(task_path,data)
 
     def publish(self):
 
         for task_id in self._running:
-            print "[publish:stats] %s " % task_id
             data = self.action_running(None)
             self.publish_task_data("running",task_id,data)
             data = self.action_stats(None)
@@ -128,6 +126,7 @@ class Executor(object):
             Stops all running containers
         :return:
         """
+        print "[stopAll] Stopping All %s" % self._running.keys()
         for task_id in self._running.keys():
             self.stop(task_id)
 
@@ -169,12 +168,14 @@ class Executor(object):
 
     def waitForExit(self):
         while len(self._running.keys()) > 0:
+            print "[waitForExit] Sleeping %s, (%s)" % (self.STATUS_CHECK_SECS, str(self._running.keys()))
             sleep(1.0*self.STATUS_CHECK_SECS)
             self.clean_dead_tasks()
         print "Exiting ... "
 
     def action_shutdown(self,data=None):
         data = {"message":"shutting down"}
+        self.stopAll()
         return data
 
     def action_default(self,data=None):
@@ -182,7 +183,7 @@ class Executor(object):
         return data
 
     def action_running(self,data=None):
-        return {"running":self._running}
+        return {"running":self._running.keys()}
 
     def action_metrics(self,data=None):
         task_metrics = []
@@ -194,18 +195,26 @@ class Executor(object):
     def action_stats(self,data=None):
         stats={}
         for task_id in self._running:
-
+            stats[task_id] = []
             for process_info in self._client.top(task_id)["Processes"]:
+                metrics = {}
                 pid=int(process_info[1])
-                print process_info
-                p = psutil.Process(pid)
 
-            metrics = {}
-            metrics
-            stats[task_id] = {}
+                try:
+                    p = psutil.Process(pid)
+                    metrics["process.name"] = p.name()
+                    metrics["process.pid"] = p.pid
+                    metrics["process.cmdline"] = "".join(p.cmdline())
+                    metrics["process.cpu.percent"] = p.cpu_percent(interval=1.0)
+                    metrics["process.memory.percent"] = p.cpu_percent()
+                    metrics["process.rss.mb"] = p.get_memory_info().rss / (1024 * 1024 )
+                    metrics["process.context_switches.voluntary"] = p.num_ctx_switches().voluntary
+                    metrics["process.context_switches.involuntary"] = p.num_ctx_switches().involuntary
+                    stats[task_id].append(metrics)
+                except psutil.NoSuchProcess,messge:
+                    print "[stats] Process no longer exists (%s)" % pid
 
-            #stats.append()
-        print stats
+
         return stats
 
 
@@ -240,7 +249,11 @@ class Executor(object):
         pass
 
     def shutdown(self):
-        self._registry.del_service(self._service_name)
+        try:
+            self._registry.del_service(self._service_name)
+        except KeyError:
+            print "[%s] service already deleted " % (self._service_name)
+
         self.httpd.shutdown()
         #self._server_thread,stop()
 
