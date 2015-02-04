@@ -5,7 +5,7 @@ Getting started with horizon's docker-task-executor.
 # Concepts 
  A docker task executor  is a command that is executed inside a container. You can think of your container as the execution context for your task. The container provides the runtime environment for your task to execute successfully.
 
- ![Overview](/docs/images/overview.png)
+ ![Overview](/docs/images/components.png)
 
 When your docker task starts it register itself with the Horizon namespace in with a service registry backend. The current service registry used is etcd; there are plans to support others. Each executor maps a running task onto a service and task. Service and task info, task metrics are stored in etcd and persist for the duration of the tasks execution. 
 
