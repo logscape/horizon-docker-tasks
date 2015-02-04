@@ -15,7 +15,7 @@ class TestEtcdRegistry(unittest.TestCase):
         self._registry = Registry("10.28.1.159",5001)
         self._client = self._registry._client
         self.directory = "/test/"
-        self.service_directory="/vscape/services/"
+        self.service_directory="/horizon/services/"
         self.file  = "/test/file1"
         self.map = {"name":"service-0"}
 
@@ -37,7 +37,7 @@ class TestEtcdRegistry(unittest.TestCase):
         service_name = "service-000"
         registry.add_service(service_name,{})
         services = None
-        r = self._client.read("/vscape/services/")
+        r = self._client.read("/horizon/services/")
         services = [ l.key.split("/")[-1] for l in r.leaves]
         print "[test/end] test_add_service"
         self.assertTrue(service_name in services)
@@ -51,7 +51,7 @@ class TestEtcdRegistry(unittest.TestCase):
         registry.add_service(service_name_2,{})
         registry.del_service(service_name_1)
         services = None
-        r = self._client.read("/vscape/services/")
+        r = self._client.read("/horizon/services/")
         services = [ l.key.split("/")[-1] for l in r.leaves]
         print "[test/end] test_add_service"
         self.assertTrue(service_name_1 not in services)
@@ -66,7 +66,7 @@ class TestEtcdRegistry(unittest.TestCase):
         registry.add_task(service_name,task_name_1,{})
         registry.add_task(service_name,task_name_2,{})
         registry.del_task(service_name,task_name_1)
-        tasks = [l.key.split("/")[-1]  for l in self._client.read("/vscape/services/%s" % (service_name)).leaves ]
+        tasks = [l.key.split("/")[-1]  for l in self._client.read("/horizon/services/%s" % (service_name)).leaves ]
 
         self.assertTrue( task_name_1 not in tasks  )
 
@@ -78,7 +78,7 @@ class TestEtcdRegistry(unittest.TestCase):
         registry.add_service(service_name1,{})
         registry.add_service(service_name2,{})
         services = None
-        r = self._client.read("/vscape/services/")
+        r = self._client.read("/horizon/services/")
         services = [ l.key.split("/")[-1] for l in r.leaves]
         print "[test/end] test_add_service"
         self.assertTrue([service_name1,service_name2] ==  services,"%s != %s" % ([service_name1,service_name2],services))
@@ -90,7 +90,7 @@ class TestEtcdRegistry(unittest.TestCase):
         task_name = "task-000"
         registry.add_service(service_name,{})
         registry.add_task(service_name,task_name,{})
-        result = self._client.read("/vscape/services/%s/%s/info" % (service_name,task_name))
+        result = self._client.read("/horizon/services/%s/%s/info" % (service_name,task_name))
         self.assertTrue( result.value != None )
 
     def test_get_taskinfo(self):
@@ -102,7 +102,7 @@ class TestEtcdRegistry(unittest.TestCase):
         registry.add_task(service_name,task_name,task_info)
 
 
-        result = self._client.read("/vscape/services/%s/%s/info" % (service_name,task_name))
+        result = self._client.read("/horizon/services/%s/%s/info" % (service_name,task_name))
         actual = json.loads(result.value.replace("'","\""))
         expected = registry.get_task_info(service_name,task_name)
         self.assertEquals(expected,actual)
@@ -113,7 +113,7 @@ class TestEtcdRegistry(unittest.TestCase):
         task_name = "task-000"
         task_info = {"name":task_name, "rest_endpoint":8000 }
         registry.add_task(service_name,task_name,task_info)
-        result = self._client.read("/vscape/services/%s/%s/info" % (service_name,task_name))
+        result = self._client.read("/horizon/services/%s/%s/info" % (service_name,task_name))
         actual = json.loads(result.value.replace("'","\""))
         expected = registry.get_task_info(service_name,task_name)
         self.assertEquals(task_info["rest_endpoint"],actual["rest_endpoint"])

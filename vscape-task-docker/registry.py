@@ -3,20 +3,21 @@ __author__ = 'gomoz'
 
 from etcd import Client,EtcdException
 import simplejson as json
+import logging
+module_logger = logging.getLogger('service-registry')
 
 class Registry(object):
-    SERVICE_DIRECTORY = "/vscape/services"
+    SERVICE_DIRECTORY = "/horizon/services"
     def __init__(self,ip,port):
         self._client = Client(ip,port)
 
     def create_directory(self,k,v):
         try:
             self._client.write(k,v,dir=True)
-            print "[WRITE DIR] (%s,%s)" %(k,v)
-            print "[WRITE DIR:list] %s" %  str([ (l.key,l.dir) for l in self._client.read(k).leaves ])
         except EtcdException,e:
             errorMessage = str(e) + "\n"
             errorMessage = "%s  [Registry] write %s = %s " % (errorMessage,k,v)
+            module_logger.fatal("[registry] write %s=%s" % (errorMessage,k,v))
             raise EtcdException(errorMessage)
 
     def read(self,k):
@@ -25,7 +26,6 @@ class Registry(object):
     def write(self,k,v):
         try:
             self._client.write(k,v)
-            print "[WRITE] (%s,%s)" %(k,v)
         except EtcdException,e:
             errorMessage = str(e) + "\n"
             errorMessage = "%s %s" % (errorMessage,"[Registry] write %s = %s" % (k,v))
