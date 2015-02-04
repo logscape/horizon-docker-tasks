@@ -51,8 +51,9 @@ The quickest way to get a etcd cluster up and running is to install it via the c
 
 Download the docker task executor. 
 
- git clone logscape.com/docker-task-excuter.git
+	https://github.com/logscape/horizon-docker-tasks.git
 
+The docker task executor includes main.py and the service-tool for querying the service registry. 
 
 ##3. Start Your Docker Task
 
