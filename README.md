@@ -14,7 +14,8 @@ When your docker task starts it registers with the horizon namespace in etcd. Ea
 
 A smart end point is registered wih a task. You can access task metrics and status information through it's rest api. The host and port numbers are both stored in etcd for each task. 
 
-# 0. Prequisites 
+# Getting Started 
+## 0. Prequisites 
 
 The docker task executer has the following dependencies. Make sure that the following libraries are installed on your system. 
 
@@ -24,7 +25,7 @@ The docker task executer has the following dependencies. Make sure that the foll
 
 This ia quick getting started guide using a mysql container.
 
-# 1. Start Etcd Cluster 
+## 1. Start Etcd Cluster 
 
 The quickest way to get a etcd cluster up and running is to install it via the container. 
 
@@ -39,14 +40,14 @@ The quickest way to get a etcd cluster up and running is to install it via the c
 
  See the [running etcd in containers ](https://coreos.com/blog/Running-etcd-in-Containers/) page. 
 
-# 2. Download docker-task-executor 
+## 2. Download docker-task-executor 
 
 Download the docker task executor. 
 
  git clone logscape.com/docker-task-excuter.git
 
 
-#3. Start Your Docker Task
+##3. Start Your Docker Task
 
 To execute a docker task you will need to specify a container and the command to run in the container. Here's a trivial example exeucting a the sleep command. 
 
@@ -57,7 +58,7 @@ To start a longer running task like a database you would need to pass the comman
 	sudo python main.py tutum/mysql:5.6 "./run.sh"
 
 
-#4. Access Task Metrics and Status using the Rest API 
+##4. Access Task Metrics and Status using the Rest API 
 
 Using the mysql example the smart end point is started on port 33015. You can get curl the task metrics in the following manner.
 
@@ -68,7 +69,7 @@ You will get the following response.
 
 
 
-#5. Access Task Metrics and Status through etcd 
+##5. Access Task Metrics and Status through etcd 
 
 Each task will publish the following information to etcd
 
