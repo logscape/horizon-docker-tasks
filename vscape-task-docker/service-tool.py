@@ -16,39 +16,51 @@ except:
 
 
 
-class VScapeStatus(object):
+class HorizonStatus(object):
     def __init__(self,client):
             self._client = client
     def get_services(self):
-        return "\n".join( [ str(l.key.split("/")[-1]) for l in client.read("/vscape/services").leaves ])
+        return "\n".join( [ str(l.key.split("/")[-1]) for l in client.read("/horizon/services").leaves ])
 
     def get_service_config(self,service_name):
         file = "config"
-        path="/vscape/services/%s/%s"  %(service_name,file)
+        path="/horizon/services/%s/%s"  %(service_name,file)
         value = client.read(path).value
 
         return json.loads(value.replace("'","\""))
 
     def get_tasks(self,service_name):
-        path="/vscape/services/" + service_name
-        tasks = {}
+        path="/horizon/services/" + service_name
+        tasks = []
         for l in client.read(path).leaves:
             if l.key.find("task") > -1:
                 k = l.key.split("/")[-1]
-                v=json.loads(l.value.replace("'","\""))
-                tasks[k]=v
+                #v=json.loads(l.value.replace("'","\""))
+                #tasks[k]=v
+                tasks.append(k)
 
         return {"name":service_name,"tasks":tasks}
 
+    def get_file(self,service_name,task_name,file):
+        path="/horizon/services/%s/%s/%s" % (service_name,task_name,file)
+        resp = self._client.read(path)
+
     def delete_service(self,service_name):
-        path="/vscape/services/" + service_name
+        path="/horizon/services/" + service_name
         self._client.delete(path,dir=True,recursive=True)
 
     def purge_service_directory(self,service_name):
-        path="/vscape/services/" + service_name
+        path="/horizon/services/" + service_name
         self._client.delete(path,dir=True,recursive=True)
         pass
 
+
+def get_file(params):
+    global vs
+    service_name = params[0]
+    task_name = params[1]
+    file = params[1]
+    print vs.get_file(service_name,task_name,file)
 
 def service_info(params):
     global vs
@@ -80,10 +92,11 @@ command_router = {
     ,"list-tasks":list_tasks
     ,"delete-service":delete_service
     ,"service-info":service_info
+    ,"get-file":get_file
     ,"help":help
 }
 client = Client(ip,port)
-vs = VScapeStatus(client)
+vs = HorizonStatus(client)
 action = command_router.get(cmd)
 action(params)
 
