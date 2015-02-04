@@ -16,7 +16,7 @@
 	- tags 
 
 
-# 3. VScape Manangement Console (VsM) 
+# 3. Horizon Manangement Console (VsM)
  The VsM console will provide service/tasks visbility and control the service/task life cycle.
 
  1. Task(script) -  list, stop, suspend etc 
