@@ -7,12 +7,19 @@ Getting started with horizon's docker-task-executor.
 
  ![Overview](/docs/images/overview.png)
 
-When your docker task starts it registers with the horizon namespace in etcd. Each executor maps a running task onto a service and task. Service and task info, task metrics are stored in etcd and persist for the duration of the tasks execution. 
+When your docker task starts it register itself with the Horizon namespace in with a service registry backend. The current service registry used is etcd; there are plans to support others. Each executor maps a running task onto a service and task. Service and task info, task metrics are stored in etcd and persist for the duration of the tasks execution. 
 
 
 ## Smart End Points
 
-A smart end point is registered wih a task. You can access task metrics and status information through it's rest api. The host and port numbers are both stored in etcd for each task. 
+A smart end point is registered wih a task. You can access task metrics and status information through it's rest api. The host and port numbers are both stored in etcd for each task. Forexample, to get the task info use the following curl command. 
+
+	curl -X GET http://127.0.0.1:31961/info
+
+This will response with the host, port and the service owning the tasks. 
+
+	{"info": {"host": "127.0.0.1", "name": "service-7024-645", "port": 31961}}
+
 
 # Getting Started 
 ## 0. Prequisites 
@@ -67,7 +74,9 @@ Using the mysql example the smart end point is started on port 33015. You can ge
 You will get the following response.
 
 
+	{"task-1533-1066": [{"process.pid": 9429, "process.cpu.percent": 0.0, "process.context_switches.involuntary": 6, "process.rss.mb": 0, "process.context_switches.voluntary": 904, "process.cmdline": "/bin/sh/usr/bin/mysqld_safe", "process.memory.percent": 0.0, "process.name": "mysqld_safe"}, {"process.pid": 10490, "process.cpu.percent": 0.0, "process.context_switches.involuntary": 1, "process.rss.mb": 0, "process.context_switches.voluntary": 17, "process.cmdline": "tail-F/var/log/mysql/error.log", "process.memory.percent": 0.0, "process.name": "tail"}, {"process.pid": 11457, "process.cpu.percent": 0.0, "process.context_switches.involuntary": 3, "process.rss.mb": 449, "process.context_switches.voluntary": 34, "process.cmdline": "/usr/sbin/mysqld--basedir=/usr--datadir=/var/lib/mysql--plugin-dir=/usr/lib/mysql/plugin--user=mysql--log-error=/var/log/mysql/error.log--pid-file=/var/run/mysqld/mysqld.pid--socket=/var/run/mysqld/mysqld.sock--port=3306", "process.memory.percent": 0.0, "process.name": "mysqld"}]}
 
+Requesting task metrics will report on each process running within a docker container. Normally With complex applications like databases multiple processes will be running with your container. 
 
 ##5. Access Task Metrics and Status through etcd 
 
@@ -81,10 +90,26 @@ Each task will publish the following information to etcd
 		-info
 
 
+##6. Service Tool.
 
+The service-tool reports which services and tasks have been registered with Horizon. Here are few usage examples.
 
-			
+### List Services 
 
+	./service-tool list-services
+
+Example output 
+
+	service-7024-645
+	service-3072-1179
+
+## List Tasks for a services		
+	
+	./service-tool list-tasks
+
+Replies with the following task-ids 
+
+	{'tasks': [u'task-3675-9288'], 'name': 'service-3072-1179'}
 
 
 
